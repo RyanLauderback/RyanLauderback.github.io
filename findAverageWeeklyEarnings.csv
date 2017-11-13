@@ -1,0 +1,17 @@
+
+import sys
+import csv
+
+nextval = sys.stdin.readline()
+sum = 0.0
+count = 0 
+nameID = "00000000"
+nameCurrent = "0000000"
+availability = []
+availabilityCSV = []
+nextval = sys.stdin.readline() 
+words = nextval.split(',')
+	# while nextval.strip() != '':
+nameCurrent = words[0]
+nameID = nameCurrent
+while nextval.strip() != '':
