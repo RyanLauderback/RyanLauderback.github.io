@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+      <meta charset="utf-8">
+     
+
+<style>
+
+div.container {
+    width: 100%;
+    border: 1px solid gray;
+}
+#map {
+        height: 80%;
+      }
+
+#description {
+  font-family: Roboto;
+  font-size: 15px;
+  font-weight: 300;
+}
+
+#infowindow-content .title {
+  font-weight: bold;
+}
+
+#infowindow-content {
+  display: none;
+}
+
+#map #infowindow-content {
+  display: inline;
+}
+
+.pac-card {
+  margin: 10px 10px 0 0;
+  border-radius: 2px 0 0 2px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background-color: #fff;
+  font-family: Roboto;
+}
+
+#pac-container {
+  padding-bottom: 12px;
+  margin-right: 12px;
+}
+
+.pac-controls {
+  display: inline-block;
+  padding: 5px 11px;
+}
+
+.pac-controls label {
+  font-family: Roboto;
+  font-size: 13px;
+  font-weight: 300;
+}
+
+#pac-input {
+  background-color: #fff;
+  font-family: Roboto;
+  font-size: 15px;
+  font-weight: 300;
+  margin-left: 12px;
+  padding: 0 11px 0 13px;
+  text-overflow: ellipsis;
+  width: 400px;
+}
+
+#pac-input:focus {
+  border-color: #4d90fe;
+}
+
+#title {
+  color: #fff;
+  background-color: #4d90fe;
+  font-size: 25px;
+  font-weight: 500;
+  padding: 6px 12px;
+}
+#target {
+  width: 345px;
+}
+    
+html, body {
+        height: 100%;
+        margin: 6;
+        padding: 0;
+      }
+
+header, footer {
+    padding: 1em;
+    color: white;
+    background-color: black;
+    clear: left;
+    text-align: center;
+}
+
+nav {
+    float: left;
+    max-width: 160px;
+    margin: 0;
+    padding: 1em;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+   
+nav ul a {
+    text-decoration: none;
+}
+
+article {
+    margin-left: 170px;
+    border-left: 1px solid gray;
+    padding: 1em;
+    overflow: hidden;
+}
+
+
+</style>
+</head>
+<body>
+
+
+<title>AirBnb SanFrancisco</title>
+
+
+<h1>AirBnB Host Optimizer in San Fransisco, California</h1>
+
+<div style="background-color:lightblue;color:white;padding:20px;">
+  <h2>AirBnb in San Fransisco, California</h2>
+  <p>San Fransisco and the greater Bay Area of California is a popular tourist destination in the United States. 
+  From the Golden Gate Bridge, the Painted Ladies, vineyards in surrounding Northern California, or to the Pacific Ocean, there are tons of awesome opportunities. </p>
+  <p></p>
+  <p> This website allows users to find their projected weekly earnings with an AirBnb location. Users can also determine their optimal price per week to maximize their bookings in a week.</p>
+  <p> An interactive map is provided below along with a converter to change address information into coordinates.</p>
+</div> 
+
+<div id="map"></div>
+    <script>
+      var map;
+      var uluru = {lat: 37.7749, lng: -122.4194};
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 37.7749, lng: -122.4194},
+          zoom: 12
+        });
+        var marker = new google.maps.Marker({
+          position: uluru,
+          map: map
+        });
+
+      }
+    </script>
+  <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <!-- <div id="map"></div> -->
+    <script>
+      // This example adds a search box to a map, using the Google Place Autocomplete
+      // feature. People can enter geographical searches. The search box will return a
+      // pick list containing a mix of places and predicted search terms.
+
+      // This example requires the Places library. Include the libraries=places
+      // parameter when you first load the API. For example:
+      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+
+      function initAutocomplete() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 37.7749, lng: -122.4194},
+          zoom: 13,
+          mapTypeId: 'roadmap'
+        });
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // Clear out the old markers.
+          markers.forEach(function(marker) {
+            marker.setMap(null);
+          });
+          markers = [];
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+      }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDsInMlFhfdr5DdGA7jVletqHJCODwXqlE&libraries=places&callback=initAutocomplete"
+    async defer></script>
+<!-- Coordinates Link -->
+<p></p>
+<p></p>
+<p><a href="https://www.latlong.net">Find Your Coordinates Here!</a></p>
+<p></p>
+<p></p>
+<!-- FUNCTION 1 -->
+<h1>Find Your Projected Average Weekly Earnings</h1>
+
+  latitude: <input type="latitude" name="latitude" id="latitude"><br>
+  longitude: <input type="longitude" name="longitude" id="longitude"><br>
+  <button onclick="findEarnings(document.getElementById('latitude').value,document.getElementById('longitude').value)">Calculate</button>
+<!-- FUCNTION 2 -->
+<h1>Find Your Optimal Booking Price</h1>
+
+  latitude: <input type="latitude1" name="latitude1" id="latitude1"><br>
+  longitude: <input type="longitude1" name="longitude1" id="longitude1"><br>
+
+  <button onclick ="findPrice(document.getElementById('latitude1').value,document.getElementById('longitude1').value)">Calculate</button>
+  <p></p>
+<!-- GRAPH 1 -->
+<img src="AveragePricesMetric.png" alt="Average Prices" style="width:627px;height:456px;">
+<!-- SECOND TEXT WINDOW -->
+<div style="background-color:lightblue;color:white;padding:20px;">
+  <h2>Average Prices based on Property Type</h2>
+  <p> To identify the causes of high pricing in the San Fransicso Area, the metric above provided the average price of each type of property available on the listing data set. The metric shows that among the most common
+    types of properties (Apartment, House, Loft), Loft properties were most expensive. </p>
+  <p> High pricing of the Lofts could be due to location and the nature of the property being in a affluent part of the city.</p>
+</div> 
+<!-- GRAPH 2,3 -->
+<p></p>
+<img src="locationDescriptionEW.png" alt="Location Differences" style="width:627px;height:456px;">
+<img src="locationDescriptionNS.png" alt="Location Differences" style="width:627px;height:456px;">
+<!-- SECOND TEXT WINDOW -->
+<div style="background-color:lightblue;color:white;padding:20px;">
+  <h2>Average Prices based on Location</h2>
+  <p> To further investigate the effect of location on the price of the Airbnb, two scatter plots were created to look at the correlation between coordinate position and the price of the property. The data set was cut at maximum price of 2500 dollars to remove high price outliers and to have a better observation of the majority of the data.</p>
+  <p> Looking at the trend line of the properties from East to West shows very negligent change in price moving from the west side of the city to the east.</p>
+  <p> Looking at the trend line of the properties from North to South shows a modest increase in price moving from the south side of the city to the north side. This could be attributed to more famous tourist attractions and the financial district being on the northern side of San Fransisco. There could also be better views of the bay area in this part of the city. </p>
+</div> 
+
+  <script>
+  // Comparator Function for the sort Method
+  function compareDistances(a, b) {
+  return a[4] - b[4];
+  }
+  // finds the expected earnings based on grid location
+  function findEarnings(latitude, longitude){
+    var dataString = "37.70692769,-122.5115,851.335769258,397.06; 37.70692769,-122.49682585,839.758846182,393.76; 37.70692769,-122.4821517,659.225000018,171.68; 37.70692769,-122.46747755,876.184230793,409.7; 37.70692769,-122.4528034,785.061153852,413.0; 37.70692769,-122.43812925,757.083846164,418.6; 37.70692769,-122.4234551,1167.14230778,169.48; 37.70692769,-122.40878095,1325.28692316,171.14; 37.70692769,-122.3941068,1481.74807701,205.78; 37.70692769,-122.37943265,1477.16961547,206.0; 37.7193442,-122.5115,774.651538493,378.26; 37.7193442,-122.49682585,725.191923102,375.66; 37.7193442,-122.4821517,839.758846182,393.76; 37.7193442,-122.46747755,669.937307711,203.02; 37.7193442,-122.4528034,923.657307712,434.32; 37.7193442,-122.43812925,690.088846165,207.0; 37.7193442,-122.4234551,1169.75769239,168.58; 37.7193442,-122.40878095,1442.77038469,200.8; 37.7193442,-122.3941068,1477.16961547,206.0; 37.7193442,-122.37943265,1384.21384622,200.32; 37.73176071,-122.5115,586.526923095,351.94; 37.73176071,-122.49682585,750.325000027,374.24; 37.73176071,-122.4821517,743.265000025,369.24; 37.73176071,-122.46747755,761.018076952,371.86; 37.73176071,-122.4528034,874.030384639,405.78; 37.73176071,-122.43812925,1147.16153856,169.98; 37.73176071,-122.4234551,1077.13076932,168.68; 37.73176071,-122.40878095,1359.18692314,201.02; 37.73176071,-122.3941068,1403.44307699,204.82; 37.73176071,-122.37943265,1583.24115391,207.1; 37.74417722,-122.5115,607.254615401,337.84; 37.74417722,-122.49682585,639.167307714,342.9; 37.74417722,-122.4821517,754.537692335,372.96; 37.74417722,-122.46747755,750.325000027,374.24; 37.74417722,-122.4528034,668.819230799,176.0; 37.74417722,-122.43812925,1133.78461548,169.08; 37.74417722,-122.4234551,1226.35961547,174.22; 37.74417722,-122.40878095,1433.29423083,206.28; 37.74417722,-122.3941068,1433.29423083,206.28; 37.74417722,-122.37943265,1553.98923082,207.68; 37.75659373,-122.5115,529.631538472,119.6; 37.75659373,-122.49682585,529.631538472,119.6; 37.75659373,-122.4821517,518.27000001,119.6; 37.75659373,-122.46747755,518.27000001,119.6; 37.75659373,-122.4528034,548.03153847,124.4; 37.75659373,-122.43812925,1038.91692316,172.66; 37.75659373,-122.4234551,1374.1607693,204.0; 37.75659373,-122.40878095,1540.37307698,207.44; 37.75659373,-122.3941068,1508.77384621,209.22; 37.75659373,-122.37943265,1499.64884621,210.08; 37.76901024,-122.5115,518.27000001,119.6; 37.76901024,-122.49682585,520.09500001,124.4; 37.76901024,-122.4821517,554.556538464,127.68; 37.76901024,-122.46747755,566.454615386,127.18; 37.76901024,-122.4528034,575.720769224,129.98; 37.76901024,-122.43812925,416.27269234,139.08; 37.76901024,-122.4234551,1186.36346162,199.92; 37.76901024,-122.40878095,1186.39923085,200.32; 37.76901024,-122.3941068,1190.68846162,208.98; 37.76901024,-122.37943265,1217.28384624,212.5; 37.78142675,-122.5115,554.556538464,127.68; 37.78142675,-122.49682585,566.454615386,127.18; 37.78142675,-122.4821517,575.720769224,129.98; 37.78142675,-122.46747755,575.720769224,129.98; 37.78142675,-122.4528034,589.03115385,134.74; 37.78142675,-122.43812925,708.900769254,156.4; 37.78142675,-122.4234551,666.973076927,158.52; 37.78142675,-122.40878095,679.72423078,169.86; 37.78142675,-122.3941068,703.798846171,165.1; 37.78142675,-122.37943265,741.711538476,169.5; 37.79384326,-122.5115,683.118846151,142.28; 37.79384326,-122.49682585,721.944230771,147.16; 37.79384326,-122.4821517,688.051153844,145.42; 37.79384326,-122.46747755,655.431923075,151.16; 37.79384326,-122.4528034,607.145384612,146.98; 37.79384326,-122.43812925,792.493846174,153.28; 37.79384326,-122.4234551,849.365384618,154.16; 37.79384326,-122.40878095,672.388846157,160.58; 37.79384326,-122.3941068,652.105769236,162.08; 37.79384326,-122.37943265,675.613076936,163.66; 37.80625977,-122.5115,686.719230767,144.74; 37.80625977,-122.49682585,669.572692304,144.36; 37.80625977,-122.4821517,648.815769226,147.2; 37.80625977,-122.46747755,642.700384612,150.2; 37.80625977,-122.4528034,608.243461534,153.96; 37.80625977,-122.43812925,759.21846157,163.04; 37.80625977,-122.4234551,754.718076956,168.82; 37.80625977,-122.40878095,780.129230764,156.38; 37.80625977,-122.3941068,672.388846157,160.58; 37.80625977,-122.37943265,636.463461552,160.62; 37.81867628,-122.5115,669.572692304,144.36; 37.81867628,-122.49682585,648.815769226,147.2; 37.81867628,-122.4821517,648.815769226,147.2; 37.81867628,-122.46747755,607.145384612,146.98; 37.81867628,-122.4528034,627.013461534,153.18; 37.81867628,-122.43812925,725.756538496,165.84; 37.81867628,-122.4234551,879.236538488,165.8; 37.81867628,-122.40878095,761.559230793,153.32; 37.81867628,-122.3941068,780.129230764,156.38; 37.81867628,-122.37943265,667.615000003,156.66;"
+    var dataList = dataString.split(";");
+    var dataLength = dataList.length;
+    // data Length = 101
+    var dataSorted = [];
+    for (var i = 0; i < dataLength; i++) {
+      var gridPoint = dataList[i].split(",");
+      var distance = Math.sqrt(Math.pow((latitude - gridPoint[0]), 2) + Math.pow((longitude - gridPoint[1]), 2));
+      gridPoint.push(distance);
+      dataSorted.push(gridPoint);
+      }
+    dataSorted.sort(compareDistances);
+    alert("Your Projected Weekly Earnings with AirBnB: " + "$"+dataSorted[0][2]);
+  }
+  // finds optimal price based on average prices around the grid point
+  function findPrice(latitude, longitude){
+    var dataString = "37.70692769,-122.5115,851.335769258,193.16; 37.70692769,-122.49682585,839.758846182,182.36; 37.70692769,-122.4821517,659.225000018,145.16; 37.70692769,-122.46747755,876.184230793,193.16; 37.70692769,-122.4528034,785.061153852,242.4; 37.70692769,-122.43812925,757.083846164,257.0; 37.70692769,-122.4234551,1167.14230778,211.04; 37.70692769,-122.40878095,1325.28692316,204.4; 37.70692769,-122.3941068,1481.74807701,260.44; 37.70692769,-122.37943265,1477.16961547,262.08; 37.7193442,-122.5115,774.651538493,153.36; 37.7193442,-122.49682585,725.191923102,151.56; 37.7193442,-122.4821517,839.758846182,182.36; 37.7193442,-122.46747755,669.937307711,206.44; 37.7193442,-122.4528034,923.657307712,242.4; 37.7193442,-122.43812925,690.088846165,252.92; 37.7193442,-122.4234551,1169.75769239,208.84; 37.7193442,-122.40878095,1442.77038469,253.16; 37.7193442,-122.3941068,1477.16961547,262.08; 37.7193442,-122.37943265,1384.21384622,248.28; 37.73176071,-122.5115,586.526923095,149.32; 37.73176071,-122.49682585,750.325000027,149.32; 37.73176071,-122.4821517,743.265000025,135.32; 37.73176071,-122.46747755,761.018076952,138.76; 37.73176071,-122.4528034,874.030384639,214.6; 37.73176071,-122.43812925,1147.16153856,214.84; 37.73176071,-122.4234551,1077.13076932,208.84; 37.73176071,-122.40878095,1359.18692314,246.2; 37.73176071,-122.3941068,1403.44307699,266.4; 37.73176071,-122.37943265,1583.24115391,266.16; 37.74417722,-122.5115,607.254615401,144.6; 37.74417722,-122.49682585,639.167307714,153.68; 37.74417722,-122.4821517,754.537692335,143.96; 37.74417722,-122.46747755,750.325000027,149.32; 37.74417722,-122.4528034,668.819230799,141.04; 37.74417722,-122.43812925,1133.78461548,208.84; 37.74417722,-122.4234551,1226.35961547,203.04; 37.74417722,-122.40878095,1433.29423083,264.64; 37.74417722,-122.3941068,1433.29423083,264.64; 37.74417722,-122.37943265,1553.98923082,265.4; 37.75659373,-122.5115,529.631538472,123.52; 37.75659373,-122.49682585,529.631538472,123.52; 37.75659373,-122.4821517,518.27000001,123.48; 37.75659373,-122.46747755,518.27000001,123.48; 37.75659373,-122.4528034,548.03153847,131.68; 37.75659373,-122.43812925,1038.91692316,207.92; 37.75659373,-122.4234551,1374.1607693,252.4; 37.75659373,-122.40878095,1540.37307698,258.72; 37.75659373,-122.3941068,1508.77384621,262.88; 37.75659373,-122.37943265,1499.64884621,260.52; 37.76901024,-122.5115,518.27000001,123.48; 37.76901024,-122.49682585,520.09500001,123.48; 37.76901024,-122.4821517,554.556538464,124.48; 37.76901024,-122.46747755,566.454615386,131.68; 37.76901024,-122.4528034,575.720769224,137.08; 37.76901024,-122.43812925,416.27269234,158.68; 37.76901024,-122.4234551,1186.36346162,247.2; 37.76901024,-122.40878095,1186.39923085,246.0; 37.76901024,-122.3941068,1190.68846162,243.92; 37.76901024,-122.37943265,1217.28384624,254.96; 37.78142675,-122.5115,554.556538464,124.48; 37.78142675,-122.49682585,566.454615386,131.68; 37.78142675,-122.4821517,575.720769224,137.08; 37.78142675,-122.46747755,575.720769224,137.08; 37.78142675,-122.4528034,589.03115385,146.64; 37.78142675,-122.43812925,708.900769254,163.12; 37.78142675,-122.4234551,666.973076927,159.8; 37.78142675,-122.40878095,679.72423078,168.28; 37.78142675,-122.3941068,703.798846171,162.28; 37.78142675,-122.37943265,741.711538476,182.04; 37.79384326,-122.5115,683.118846151,149.44; 37.79384326,-122.49682585,721.944230771,159.6; 37.79384326,-122.4821517,688.051153844,155.08; 37.79384326,-122.46747755,655.431923075,158.28; 37.79384326,-122.4528034,607.145384612,154.16; 37.79384326,-122.43812925,792.493846174,157.36; 37.79384326,-122.4234551,849.365384618,139.0; 37.79384326,-122.40878095,672.388846157,160.92; 37.79384326,-122.3941068,652.105769236,167.52; 37.79384326,-122.37943265,675.613076936,176.68; 37.80625977,-122.5115,686.719230767,150.36; 37.80625977,-122.49682585,669.572692304,151.76; 37.80625977,-122.4821517,648.815769226,153.4; 37.80625977,-122.46747755,642.700384612,160.6; 37.80625977,-122.4528034,608.243461534,168.12; 37.80625977,-122.43812925,759.21846157,157.32; 37.80625977,-122.4234551,754.718076956,145.84; 37.80625977,-122.40878095,780.129230764,143.76; 37.80625977,-122.3941068,672.388846157,160.92; 37.80625977,-122.37943265,636.463461552,164.6; 37.81867628,-122.5115,669.572692304,151.76; 37.81867628,-122.49682585,648.815769226,153.4; 37.81867628,-122.4821517,648.815769226,153.4; 37.81867628,-122.46747755,607.145384612,154.16; 37.81867628,-122.4528034,627.013461534,166.56; 37.81867628,-122.43812925,725.756538496,165.32; 37.81867628,-122.4234551,879.236538488,158.2; 37.81867628,-122.40878095,761.559230793,148.88; 37.81867628,-122.3941068,780.129230764,143.24; 37.81867628,-122.37943265,667.615000003,157.28;"
+    var dataList = dataString.split(";");
+    var dataLength = dataList.length;
+    
+    // data Length = 101
+    var dataSorted = [];
+    for (var i = 0; i < dataLength; i++) {
+      var gridPoint = dataList[i].split(",");
+      var distance = Math.sqrt(Math.pow((latitude - gridPoint[0]), 2) + Math.pow((longitude - gridPoint[1]), 2));
+      gridPoint.push(distance);
+      dataSorted.push(gridPoint);
+      }
+    
+    dataSorted.sort(compareDistances);
+    
+    alert("Your Optimal Nightly Price for your AirBnB property: " + "$"+dataSorted[0][3]);
+    return [dataList[0][0], dataList[0][1]];
+  }
+  </script>
+  
+  <!-- Property Type: <select name="Property Type">
+    <option value="House">House</option>
+    <option value="Apartment">Apartment</option>
+    <option value="Condominium">Condominium</option>
+    <option value="Cabin">Cabin</option>
+    <option value="Loft">Loft</option>
+    <option value="Dorm">Dorm</option>
+    <option value="Guesthouse">Guesthouse</option>
+    <option value="Cabin">Cabin</option>
+    <option value="Other">Other</option>
+
+  </select> -->
+ 
+<div class="container">
+
+<header>
+   
+</header>
+  
+
+</body>
+</html>
